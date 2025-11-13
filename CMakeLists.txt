@@ -1,23 +1,18 @@
-cmake_minimum_required(VERSION 3.10)
-project(MetagraphExample)
+cmake_minimum_required(VERSION 3.16)
+
+project(MetagraphExamples)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Add the metagraph project as a subdirectory (from submodule)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/metagraph ${CMAKE_CURRENT_BINARY_DIR}/metagraph_build)
+# Add metagraph as a subdirectory
+add_subdirectory(metagraph/metagraph)
 
-# Create the example executable
-add_executable(example example.cpp)
+# Create example executables
+add_executable(basic_query examples/basic_query.cpp)
 
-# Link against metagraph libraries
-target_link_libraries(example PRIVATE
+# Link against metagraph libraries - includes are inherited automatically
+target_link_libraries(basic_query PRIVATE
     metagraph-cli
     metagraph-core
-)
-
-# Include the metagraph source directory to access headers
-target_include_directories(example PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/metagraph/metagraph/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/metagraph/metagraph/api
 )

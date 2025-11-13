@@ -1,180 +1,330 @@
-# MetaGraph Basic Usage Example
+# MetaGraph API Examples
 
-This example demonstrates how to use MetaGraph as a library to load and query annotated de Bruijn graphs.
+This repository contains examples demonstrating how to use MetaGraph as a C++ library for working with annotated de Bruijn graphs.
 
-## What's Included
+## Overview
 
-- `metagraph.hpp` - A convenience header in `metagraph/api/` that includes essential MetaGraph headers
-- `example.cpp` - A complete example showing graph loading and querying
-- `CMakeLists.txt` - CMake configuration for building the example
+MetaGraph is a tool for scalable construction and indexing of genome graphs and sequence-to-graph alignment. This repository provides practical examples of using MetaGraph's C++ API in your own applications.
+
+## Repository Structure
+
+```
+metagraph-examples/
+├── examples/           # Example programs
+│   └── basic_query.cpp # Basic querying example
+├── data/              # Test data
+│   ├── graphs/        # Pre-built test graphs
+│   ├── test_sequences.fa
+│   └── test_query.fa
+├── metagraph/         # MetaGraph submodule
+├── CMakeLists.txt     # Build configuration
+└── README.md          # This file
+```
 
 ## Prerequisites
 
-Before running this example, you need to create a test graph and annotation. You can use the sample data from the MetaGraph repository.
+- C++17 or later
+- CMake 3.16+
+- Standard build tools (gcc/clang, make)
+- Git (for submodules)
 
-### Step 1: Build MetaGraph
+## Quick Start
 
-From the MetaGraph root directory:
+### 1. Clone with Submodules
 
 ```bash
-cd metagraph
-mkdir -p build && cd build
-cmake ..
-make -j4
-cd ../..
+git clone --recursive https://github.com/ratschlab/metagraph-examples.git
+cd metagraph-examples
 ```
 
-### Step 2: Create Test Data
-
-Use the sample data to create a small graph and annotation:
+If you already cloned without `--recursive`:
 
 ```bash
-cd metagraph/build
+git submodule update --init --recursive
+```
 
-# Build a graph from test data
-./metagraph_DNA build -v -k 10 -o test_graph \
-    ../tests/data/transcripts_1000.fa
+### 2. Build
 
-# Annotate the graph
-./metagraph_DNA annotate -v \
-    -i test_graph.dbg \
+```bash
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
+```
+
+This will build both MetaGraph and the example programs.
+
+### 3. Prepare Test Data
+
+Build a simple test graph using the provided test sequences:
+
+```bash
+cd ..  # Back to project root
+
+# Build graph with k=31
+./metagraph/metagraph/build/metagraph build \
+    -k 31 -o data/graphs/test_graph data/test_sequences.fa
+
+# Create annotations
+./metagraph/metagraph/build/metagraph annotate \
+    -i data/graphs/test_graph.dbg \
     --anno-filename \
-    -o test_graph \
-    ../tests/data/transcripts_1000.fa
-
-cd ../..
+    -o data/graphs/test_graph \
+    data/test_sequences.fa
 ```
 
-This will create:
-- `test_graph.dbg` - The de Bruijn graph
-- `test_graph.column.annodbg` - Column-compressed annotation
+This creates:
+- `data/graphs/test_graph.dbg` - The de Bruijn graph
+- `data/graphs/test_graph.column.annodbg` - Column-compressed annotation
 
-## Building the Example
-
-From the `examples/basic_usage` directory:
+### 4. Run Examples
 
 ```bash
-mkdir -p build
-cd build
-cmake ..
-make
+# Basic query example
+./build/basic_query \
+    data/graphs/test_graph.dbg \
+    data/graphs/test_graph.column.annodbg \
+    data/test_query.fa
 ```
 
-This will create the `example` executable.
+## Examples
 
-## Running the Example
+### basic_query
 
-You'll need:
-1. A graph file (`.dbg`)
-2. An annotation file (`.annodbg`)
-3. A query file (`.fa` or `.fasta`)
+Demonstrates:
+- Loading a de Bruijn graph from disk
+- Loading annotations
+- Mapping sequences to graph nodes
+- Retrieving labels for matched nodes
+- Processing and displaying results
 
-### Using the test data created above:
-
+**Usage:**
 ```bash
-# From examples/basic_usage/build/
-./example \
-    ../../../metagraph/build/test_graph.dbg \
-    ../../../metagraph/build/test_graph.column.annodbg \
-    ../../../metagraph/tests/data/transcripts_1000.fa
+./basic_query <graph.dbg> <annotation.annodbg> <query.fa>
 ```
 
-### Expected Output
-
-The example will:
-1. Load the graph and print basic statistics (k-mer size, number of nodes)
-2. Load the annotations and display the number of labels
-3. Query sequences from the input file
-4. Print matching labels for each sequence
-
-Example output:
+**Expected Output:**
 ```
-Loading graph from: test_graph.dbg
+Loading graph from: data/graphs/test_graph.dbg
 Graph loaded successfully
-  k: 10
-  Number of nodes: 12345
+  k: 31
+  Number of nodes: 25
 
-Loading annotation from: test_graph.column.annodbg
+Loading annotation from: data/graphs/test_graph.column.annodbg
 Annotation loaded successfully
-  Number of labels: 100
+  Number of labels: 1
   Sample labels:
-    - sequence_1
-    - sequence_2
-    - sequence_3
+    - data/test_sequences.fa
 
-Querying sequences from: query.fa
+Querying sequences from: data/test_query.fa
 
-Sequence: sequence_1
-  Length: 500 bp
-  Matches: sequence_1	sequence_2
+Sequence: query1
+  Length: 37 bp
+  K-mers matched: 7/7 (100%)
+  Matching labels:
+    - data/test_sequences.fa (in 7 k-mers)
 
-3 sequence(s) processed successfully
+Sequence: query2
+  Length: 38 bp
+  K-mers matched: 8/8 (100%)
+  Matching labels:
+    - data/test_sequences.fa (in 8 k-mers)
+
+2 sequence(s) processed successfully
 
 Example completed successfully!
 ```
 
-## Using MetaGraph in Your Own Project
+## Using MetaGraph in Your Project
 
-To use MetaGraph in your own C++ project:
+### Include MetaGraph
 
-### 1. Include the Header
-
-```cpp
-#include "metagraph.hpp"
+Add as a submodule:
+```bash
+git submodule add https://github.com/ratschlab/metagraph.git
 ```
 
-### 2. Link Against MetaGraph Libraries
-
-In your CMakeLists.txt:
+### CMake Configuration
 
 ```cmake
-# Add MetaGraph as a subdirectory
-add_subdirectory(path/to/metagraph/metagraph ${CMAKE_BINARY_DIR}/metagraph_build)
+cmake_minimum_required(VERSION 3.16)
+project(YourProject)
 
-# Link your executable
-target_link_libraries(your_executable PRIVATE
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Add MetaGraph
+add_subdirectory(metagraph/metagraph)
+
+# Your executable
+add_executable(your_app main.cpp)
+
+# Link MetaGraph libraries
+target_link_libraries(your_app PRIVATE
     metagraph-cli
     metagraph-core
 )
-
-# Include directories
-target_include_directories(your_executable PRIVATE
-    path/to/metagraph/metagraph/src
-    path/to/metagraph/metagraph/api
-)
 ```
 
-### 3. Key Components
+### Basic Code Example
 
-The main components you'll typically use:
+```cpp
+#include "metagraph.hpp"
+#include "cli/load/load_annotation.hpp"
+#include "seq_io/sequence_io.hpp"
 
-- `mtg::cli::load_critical_dbg()` - Load a de Bruijn graph
-- `mtg::cli::initialize_annotated_dbg()` - Load annotations
-- `mtg::cli::QueryExecutor` - Execute queries on annotated graphs
-- `mtg::cli::Config` - Configuration for various operations
+using namespace mtg;
+using namespace mtg::cli;
+using namespace mtg::graph;
 
-## Further Reading
+int main() {
+    // Load graph
+    auto graph = load_critical_dbg("graph.dbg");
+    
+    // Load annotation
+    auto anno_type = parse_annotation_type("graph.column.annodbg");
+    auto annotation = initialize_annotation(anno_type);
+    annotation->load("graph.column.annodbg");
+    
+    // Create annotated graph
+    auto anno_graph = std::make_unique<AnnotatedDBG>(graph, std::move(annotation));
+    
+    // Query sequences
+    seq_io::read_fasta_file_critical("query.fa",
+        [&](seq_io::kseq_t* read) {
+            std::vector<DeBruijnGraph::node_index> nodes;
+            anno_graph->get_graph().map_to_nodes_sequentially(
+                read->seq.s,
+                [&](auto node) { nodes.push_back(node); }
+            );
+            
+            // Process nodes and get labels...
+        }
+    );
+    
+    return 0;
+}
+```
 
-- [MetaGraph Documentation](https://metagraph.ethz.ch/static/docs/index.html)
-- [Quick Start Guide](https://metagraph.ethz.ch/static/docs/quick_start.html)
-- Main repository: https://github.com/ratschlab/metagraph
+## Key API Components
+
+### Graph Operations
+- `load_critical_dbg(path)` - Load a de Bruijn graph
+- `graph.get_k()` - Get k-mer size
+- `graph.num_nodes()` - Get number of nodes
+- `graph.map_to_nodes_sequentially(seq, callback)` - Map sequence to nodes
+
+### Annotation Operations
+- `parse_annotation_type(path)` - Detect annotation type from file
+- `initialize_annotation(type)` - Create annotation object
+- `annotation->load(path)` - Load annotation from disk
+- `annotator.get_labels(node)` - Get labels for a node
+- `annotator.num_labels()` - Get total number of labels
+
+### Sequence I/O
+- `read_fasta_file_critical(path, callback)` - Read FASTA/FASTQ files
+- `kseq_t` - Structure representing a sequence record
+
+## Documentation
+
+- [MetaGraph Main Documentation](https://metagraph.ethz.ch)
+- [API Status](../metagraph/metagraph/api/Status.md)
+- [MetaGraph Paper](https://doi.org/10.1186/s13059-020-02237-7)
+
+## Building Graphs
+
+MetaGraph supports various graph construction modes and annotation types:
+
+### Basic Graph Construction
+
+```bash
+# Simple construction
+metagraph build -k 31 -o output input.fa
+
+# With memory limit
+metagraph build -k 31 --mem-cap-gb 10 -o output input.fa
+
+# Canonical mode (recommended for DNA)
+metagraph build -k 31 --mode canonical -o output input.fa
+```
+
+### Annotation Types
+
+```bash
+# Column annotation (default, good for most cases)
+metagraph annotate -i graph.dbg --anno-filename -o output input.fa
+
+# Row annotation (better for very sparse annotations)
+metagraph annotate -i graph.dbg --anno-type row -o output input.fa
+
+# With counts
+metagraph annotate -i graph.dbg --count-kmers -o output input.fa
+```
 
 ## Troubleshooting
 
-### Build Errors
+### Build Issues
 
-If you encounter build errors, make sure:
-- You've built MetaGraph first (including all dependencies)
-- CMake can find all required dependencies
-- You're using C++17 or later
+**Problem:** CMake can't find dependencies
+```bash
+# Make sure submodules are initialized
+git submodule update --init --recursive
+```
 
-### Runtime Errors
+**Problem:** Compiler errors about C++ standard
+```bash
+# Ensure you're using C++17 or later
+cmake .. -DCMAKE_CXX_STANDARD=17
+```
 
-Common issues:
-- **"Cannot load graph"**: Check that the file path is correct and the file exists
-- **"Graph version mismatch"**: The graph was built with a different version of MetaGraph
-- **Segmentation fault**: Ensure your graph and annotation files are compatible
+### Runtime Issues
+
+**Problem:** "Cannot load graph"
+- Check file paths are correct
+- Ensure graph files exist and are readable
+- Verify graph was built with compatible MetaGraph version
+
+**Problem:** Segmentation fault
+- Check graph and annotation compatibility
+- Ensure annotation was built for the same graph
+- Verify k-mer size matches between graph and queries
+
+**Problem:** Out of memory
+- Use memory-mapped mode: `--mmap` flag when building graphs
+- Reduce batch size for large-scale queries
+- Use appropriate annotation type for your use case
+
+## Performance Tips
+
+1. **Use canonical mode** for DNA sequences to reduce graph size
+2. **Build with release mode**: `cmake -DCMAKE_BUILD_TYPE=Release ..`
+3. **Use parallel processing**: Most MetaGraph operations support `-p` flag
+4. **Memory mapping**: Use `--mmap` for large graphs that don't fit in RAM
+5. **Batch queries**: Process multiple sequences together for better throughput
+
+## Contributing
+
+Found a bug or want to add an example? Please open an issue or submit a pull request!
 
 ## License
 
-This example code is provided under the same license as MetaGraph.
+This project follows the same license as MetaGraph. See [LICENSE](metagraph/LICENSE) for details.
+
+## Citation
+
+If you use MetaGraph in your research, please cite:
+
+```bibtex
+@article{karasikov2020metagraph,
+  title={MetaGraph: Indexing and analysing nucleotide archives at petabase-scale},
+  author={Karasikov, Mikhail and Mustafa, Harun and Danciu, Ioana and Zimmermann, Marc and Barber, Christopher and R{\"a}tsch, Gunnar and others},
+  journal={bioRxiv},
+  year={2020},
+  publisher={Cold Spring Harbor Laboratory}
+}
+```
+
+## Support
+
+- GitHub Issues: https://github.com/ratschlab/metagraph/issues
+- Documentation: https://metagraph.ethz.ch
+- Paper: https://doi.org/10.1186/s13059-020-02237-7

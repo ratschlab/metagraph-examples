@@ -1,0 +1,9 @@
+build/
+*.dbg
+*.annodbg
+*.column.annodbg
+*.row_diff.annodbg
+*.row.annodbg
+*.brwt.annodbg
+*.flat.annodbg
+*.rbbrwt.annodbg
