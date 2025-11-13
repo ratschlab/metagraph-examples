@@ -1,0 +1,4 @@
+[submodule "metagraph"]
+	path = metagraph
+	url = https://github.com/ratschlab/metagraph.git
+	branch = api-header-example
