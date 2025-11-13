@@ -51,32 +51,11 @@ cmake ..
 make -j$(nproc)
 ```
 
-This will build both MetaGraph and the example programs.
+This will build the example programs.
 
-### 3. Prepare Test Data
+### 3. Run Examples
 
-Build a simple test graph using the provided test sequences:
-
-```bash
-cd ..  # Back to project root
-
-# Build graph with k=31
-./metagraph/metagraph/build/metagraph build \
-    -k 31 -o data/graphs/test_graph data/test_sequences.fa
-
-# Create annotations
-./metagraph/metagraph/build/metagraph annotate \
-    -i data/graphs/test_graph.dbg \
-    --anno-filename \
-    -o data/graphs/test_graph \
-    data/test_sequences.fa
-```
-
-This creates:
-- `data/graphs/test_graph.dbg` - The de Bruijn graph
-- `data/graphs/test_graph.column.annodbg` - Column-compressed annotation
-
-### 4. Run Examples
+The repository includes pre-built test data, so you can run examples immediately:
 
 ```bash
 # Basic query example
@@ -204,106 +183,6 @@ int main() {
     return 0;
 }
 ```
-
-## Key API Components
-
-### Graph Operations
-- `load_critical_dbg(path)` - Load a de Bruijn graph
-- `graph.get_k()` - Get k-mer size
-- `graph.num_nodes()` - Get number of nodes
-- `graph.map_to_nodes_sequentially(seq, callback)` - Map sequence to nodes
-
-### Annotation Operations
-- `parse_annotation_type(path)` - Detect annotation type from file
-- `initialize_annotation(type)` - Create annotation object
-- `annotation->load(path)` - Load annotation from disk
-- `annotator.get_labels(node)` - Get labels for a node
-- `annotator.num_labels()` - Get total number of labels
-
-### Sequence I/O
-- `read_fasta_file_critical(path, callback)` - Read FASTA/FASTQ files
-- `kseq_t` - Structure representing a sequence record
-
-## Documentation
-
-- [MetaGraph Main Documentation](https://metagraph.ethz.ch)
-- [API Status](../metagraph/metagraph/api/Status.md)
-- [MetaGraph Paper](https://doi.org/10.1186/s13059-020-02237-7)
-
-## Building Graphs
-
-MetaGraph supports various graph construction modes and annotation types:
-
-### Basic Graph Construction
-
-```bash
-# Simple construction
-metagraph build -k 31 -o output input.fa
-
-# With memory limit
-metagraph build -k 31 --mem-cap-gb 10 -o output input.fa
-
-# Canonical mode (recommended for DNA)
-metagraph build -k 31 --mode canonical -o output input.fa
-```
-
-### Annotation Types
-
-```bash
-# Column annotation (default, good for most cases)
-metagraph annotate -i graph.dbg --anno-filename -o output input.fa
-
-# Row annotation (better for very sparse annotations)
-metagraph annotate -i graph.dbg --anno-type row -o output input.fa
-
-# With counts
-metagraph annotate -i graph.dbg --count-kmers -o output input.fa
-```
-
-## Troubleshooting
-
-### Build Issues
-
-**Problem:** CMake can't find dependencies
-```bash
-# Make sure submodules are initialized
-git submodule update --init --recursive
-```
-
-**Problem:** Compiler errors about C++ standard
-```bash
-# Ensure you're using C++17 or later
-cmake .. -DCMAKE_CXX_STANDARD=17
-```
-
-### Runtime Issues
-
-**Problem:** "Cannot load graph"
-- Check file paths are correct
-- Ensure graph files exist and are readable
-- Verify graph was built with compatible MetaGraph version
-
-**Problem:** Segmentation fault
-- Check graph and annotation compatibility
-- Ensure annotation was built for the same graph
-- Verify k-mer size matches between graph and queries
-
-**Problem:** Out of memory
-- Use memory-mapped mode: `--mmap` flag when building graphs
-- Reduce batch size for large-scale queries
-- Use appropriate annotation type for your use case
-
-## Performance Tips
-
-1. **Use canonical mode** for DNA sequences to reduce graph size
-2. **Build with release mode**: `cmake -DCMAKE_BUILD_TYPE=Release ..`
-3. **Use parallel processing**: Most MetaGraph operations support `-p` flag
-4. **Memory mapping**: Use `--mmap` for large graphs that don't fit in RAM
-5. **Batch queries**: Process multiple sequences together for better throughput
-
-## Contributing
-
-Found a bug or want to add an example? Please open an issue or submit a pull request!
 
 ## License
 
