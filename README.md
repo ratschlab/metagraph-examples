@@ -187,23 +187,3 @@ int main() {
 ## License
 
 This project follows the same license as MetaGraph. See [LICENSE](metagraph/LICENSE) for details.
-
-## Citation
-
-If you use MetaGraph in your research, please cite:
-
-```bibtex
-@article{karasikov2020metagraph,
-  title={MetaGraph: Indexing and analysing nucleotide archives at petabase-scale},
-  author={Karasikov, Mikhail and Mustafa, Harun and Danciu, Ioana and Zimmermann, Marc and Barber, Christopher and R{\"a}tsch, Gunnar and others},
-  journal={bioRxiv},
-  year={2020},
-  publisher={Cold Spring Harbor Laboratory}
-}
-```
-
-## Support
-
-- GitHub Issues: https://github.com/ratschlab/metagraph/issues
-- Documentation: https://metagraph.ethz.ch
-- Paper: https://doi.org/10.1186/s13059-020-02237-7
