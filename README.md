@@ -60,10 +60,12 @@ The repository includes pre-built test data, so you can run examples immediately
 ```bash
 # Basic query example
 ./build/basic_query \
-    data/graphs/test_graph.dbg \
-    data/graphs/test_graph.column.annodbg \
-    data/test_query.fa
+    data/graphs/test_${ALPHABET}_graph.dbg \
+    data/graphs/test_${ALPHABET}_graph.column.annodbg \
+    data/test_${ALPHABET}_query.fa
 ```
+
+Where `${ALPHABET}` is `DNA` or `Protein` (if `-DCMAKE_DBG_ALPHABET=Protein` was passed to `cmake ..`)
 
 ## Examples
 
