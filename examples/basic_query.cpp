@@ -137,7 +137,9 @@ int main(int argc, char* argv[]) {
                 
                 for (const auto& node : mapping) {
                     if (node != DeBruijnGraph::npos) {
-                        auto labels = anno_graph->get_annotator().get_labels(node);
+                        // Convert graph node index to annotation index
+                        auto anno_index = AnnotatedDBG::graph_to_anno_index(node);
+                        auto labels = anno_graph->get_annotator().get_labels(anno_index);
                         for (const auto& label : labels) {
                             label_counts[label]++;
                         }
