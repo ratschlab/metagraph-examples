@@ -92,6 +92,11 @@ set(EXTERNAL_LIBS
     deflate
 )
 
+# On macOS, add OpenMP and folly libraries (same as main MetaGraph)
+if(APPLE)
+    list(APPEND EXTERNAL_LIBS ${OpenMP_CXX_LIBRARIES} fbvector)
+endif()
+
 # Add atomic library only for GNU compilers or non-macOS systems (same as main MetaGraph)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     list(APPEND EXTERNAL_LIBS -latomic)
