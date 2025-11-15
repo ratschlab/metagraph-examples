@@ -60,6 +60,17 @@ if(APPLE)
         /usr/local/include
         /opt/homebrew/include
     )
+    if (NOT DEFINED OpenMP_ROOT)
+        execute_process(
+            COMMAND brew --prefix libomp
+            OUTPUT_VARIABLE HOMEBREW_LIBOMP_PREFIX
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+        if(HOMEBREW_LIBOMP_PREFIX)
+            set(OpenMP_ROOT "${HOMEBREW_LIBOMP_PREFIX}" CACHE PATH "Path to OpenMP")
+        endif()
+    endif()
 endif()
 
 # Find required system dependencies for MetaGraph
