@@ -50,7 +50,7 @@ set(METAGRAPH_INSTALL_DIR ${INSTALL_DIR})
 # Create our example executable
 add_executable(external_query ../examples/basic_query.cpp)
 
-# On macOS, add Homebrew library paths (same as main MetaGraph)
+# On macOS, add Homebrew library paths and detect OpenMP (same as main MetaGraph)
 if(APPLE)
     target_link_directories(external_query PRIVATE /usr/local/lib)
     if(EXISTS /opt/homebrew/lib)
@@ -89,17 +89,13 @@ set(EXTERNAL_LIBS
     metagraph-core
     Boost::iostreams
     OpenMP::OpenMP_CXX
+    jemalloc
     deflate
 )
 
-# On macOS, add OpenMP and folly libraries (same as main MetaGraph)
-if(APPLE)
-    list(APPEND EXTERNAL_LIBS ${OpenMP_CXX_LIBRARIES} fbvector)
-endif()
-
-# Add atomic library only for GNU compilers or non-macOS systems (same as main MetaGraph)
+# Add atomic library only for GNU compilers or non-macOS systems
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    list(APPEND EXTERNAL_LIBS -latomic)
+    list(APPEND EXTERNAL_LIBS atomic)
 endif()
 
 target_link_libraries(external_query PRIVATE ${EXTERNAL_LIBS})
