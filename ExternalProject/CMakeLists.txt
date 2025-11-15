@@ -1,0 +1,71 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(ExternalProject_Add_example)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Set MetaGraph version
+set(METAGRAPH_GIT_TAG "master" CACHE STRING "Git tag/branch/commit for MetaGraph")
+
+# Set alphabet (DNA or Protein)
+if(NOT DEFINED CMAKE_DBG_ALPHABET)
+    set(CMAKE_DBG_ALPHABET "DNA" CACHE STRING "Alphabet for MetaGraph (DNA or Protein)")
+endif()
+
+# Include ExternalProject module
+include(ExternalProject)
+
+# Download and build MetaGraph as an external project
+ExternalProject_Add(metagraph-external
+    GIT_REPOSITORY https://github.com/ratschlab/metagraph.git
+    GIT_TAG ${METAGRAPH_GIT_TAG}
+    SOURCE_SUBDIR metagraph
+    
+    CMAKE_ARGS
+        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+        -DCMAKE_DBG_ALPHABET=${CMAKE_DBG_ALPHABET}
+        -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+        -DMETAGRAPH_BUILD_EXECUTABLE=OFF
+)
+
+# Get the install directory
+ExternalProject_Get_Property(metagraph-external INSTALL_DIR)
+set(METAGRAPH_INSTALL_DIR ${INSTALL_DIR})
+
+# Find required system dependencies for MetaGraph
+find_package(OpenMP REQUIRED)
+find_package(Boost REQUIRED COMPONENTS iostreams)
+
+# Create our example executable
+add_executable(external_query ../examples/basic_query.cpp)
+
+# Use the installed includes and libraries
+target_include_directories(external_query PRIVATE ${METAGRAPH_INSTALL_DIR}/include)
+target_link_directories(external_query PRIVATE ${METAGRAPH_INSTALL_DIR}/lib)
+
+# Link MetaGraph and external system dependencies
+# metagraph-core.a now bundles all internal dependencies (zlib, sdsl, hts, spdlog, folly, etc.)
+# We only need to link against external system dependencies
+target_link_libraries(external_query PRIVATE 
+    metagraph-cli
+    metagraph-core
+    Boost::iostreams
+    OpenMP::OpenMP_CXX
+    -ldeflate
+    -latomic
+)
+
+# Ensure MetaGraph is built before our executable
+add_dependencies(external_query metagraph-external)
+
+# Add a custom target to run the example with test data
+add_custom_target(run_example
+    COMMAND external_query
+        ${CMAKE_CURRENT_SOURCE_DIR}/../data/graphs/test_${CMAKE_DBG_ALPHABET}_graph.dbg
+        ${CMAKE_CURRENT_SOURCE_DIR}/../data/graphs/test_${CMAKE_DBG_ALPHABET}_graph.column.annodbg
+        ${CMAKE_CURRENT_SOURCE_DIR}/../data/test_${CMAKE_DBG_ALPHABET}_query.fa
+    DEPENDS external_query
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Running external_query example with ${CMAKE_DBG_ALPHABET} test data"
+)
