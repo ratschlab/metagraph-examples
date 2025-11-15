@@ -16,17 +16,31 @@ endif()
 # Include ExternalProject module
 include(ExternalProject)
 
+# Forward optional build flags to MetaGraph if they're set
+set(METAGRAPH_CMAKE_ARGS
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_DBG_ALPHABET=${CMAKE_DBG_ALPHABET}
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DMETAGRAPH_BUILD_EXECUTABLE=OFF
+)
+
+# Forward optional flags if they're defined
+if(DEFINED BUILD_STATIC)
+    list(APPEND METAGRAPH_CMAKE_ARGS -DBUILD_STATIC=${BUILD_STATIC})
+endif()
+if(DEFINED WITH_AVX)
+    list(APPEND METAGRAPH_CMAKE_ARGS -DWITH_AVX=${WITH_AVX})
+endif()
+if(DEFINED WITH_MSSE42)
+    list(APPEND METAGRAPH_CMAKE_ARGS -DWITH_MSSE42=${WITH_MSSE42})
+endif()
+
 # Download and build MetaGraph as an external project
 ExternalProject_Add(metagraph-external
     GIT_REPOSITORY https://github.com/ratschlab/metagraph.git
     GIT_TAG ${METAGRAPH_GIT_TAG}
     SOURCE_SUBDIR metagraph
-    
-    CMAKE_ARGS
-        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_DBG_ALPHABET=${CMAKE_DBG_ALPHABET}
-        -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-        -DMETAGRAPH_BUILD_EXECUTABLE=OFF
+    CMAKE_ARGS ${METAGRAPH_CMAKE_ARGS}
 )
 
 # Get the install directory
