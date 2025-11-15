@@ -63,6 +63,7 @@ That's it! CMake handles the rest.
 ## Example Code
 
 The example code in `../examples/basic_query.cpp` demonstrates:
+
 - Loading a de Bruijn graph from disk
 - Loading annotations
 - Querying sequences against the graph
@@ -149,6 +150,7 @@ int main() {
 ## When to Use
 
 Choose `add_subdirectory` when:
+
 - You're actively developing with MetaGraph
 - You want simple, straightforward CMake configuration
 - You need to debug into MetaGraph's code
