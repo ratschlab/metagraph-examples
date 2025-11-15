@@ -47,6 +47,9 @@ ExternalProject_Add(metagraph-external
 ExternalProject_Get_Property(metagraph-external INSTALL_DIR)
 set(METAGRAPH_INSTALL_DIR ${INSTALL_DIR})
 
+# Create our example executable
+add_executable(external_query ../examples/basic_query.cpp)
+
 # On macOS, add Homebrew library paths (same as main MetaGraph)
 if(APPLE)
     target_link_directories(external_query PRIVATE /usr/local/lib)
@@ -62,9 +65,6 @@ endif()
 # Find required system dependencies for MetaGraph
 find_package(OpenMP REQUIRED)
 find_package(Boost REQUIRED COMPONENTS iostreams)
-
-# Create our example executable
-add_executable(external_query ../examples/basic_query.cpp)
 
 # Use the installed includes and libraries
 target_include_directories(external_query PRIVATE ${METAGRAPH_INSTALL_DIR}/include)
