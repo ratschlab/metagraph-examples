@@ -116,7 +116,7 @@ sudo apt-get install libboost-iostreams-dev libdeflate-dev
 
 On macOS:
 ```bash
-brew install boost libdeflate
+brew install boost libdeflate jemalloc
 ```
 
 ### 3. Specify MetaGraph Version
