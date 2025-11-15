@@ -47,17 +47,16 @@ ExternalProject_Add(metagraph-external
 ExternalProject_Get_Property(metagraph-external INSTALL_DIR)
 set(METAGRAPH_INSTALL_DIR ${INSTALL_DIR})
 
-# On macOS, help CMake find OpenMP from Homebrew
-if(APPLE AND NOT DEFINED OpenMP_ROOT)
-    execute_process(
-        COMMAND brew --prefix libomp
-        OUTPUT_VARIABLE HOMEBREW_LIBOMP_PREFIX
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET
-    )
-    if(HOMEBREW_LIBOMP_PREFIX)
-        set(OpenMP_ROOT "${HOMEBREW_LIBOMP_PREFIX}" CACHE PATH "Path to OpenMP")
+# On macOS, add Homebrew library paths (same as main MetaGraph)
+if(APPLE)
+    target_link_directories(external_query PRIVATE /usr/local/lib)
+    if(EXISTS /opt/homebrew/lib)
+        target_link_directories(external_query PRIVATE /opt/homebrew/lib)
     endif()
+    target_include_directories(external_query SYSTEM PRIVATE
+        /usr/local/include
+        /opt/homebrew/include
+    )
 endif()
 
 # Find required system dependencies for MetaGraph
@@ -74,14 +73,20 @@ target_link_directories(external_query PRIVATE ${METAGRAPH_INSTALL_DIR}/lib)
 # Link MetaGraph and external system dependencies
 # metagraph-core.a now bundles all internal dependencies (zlib, sdsl, hts, spdlog, folly, etc.)
 # We only need to link against external system dependencies
-target_link_libraries(external_query PRIVATE 
+set(EXTERNAL_LIBS
     metagraph-cli
     metagraph-core
     Boost::iostreams
     OpenMP::OpenMP_CXX
-    -ldeflate
-    -latomic
+    deflate
 )
+
+# Add atomic library only for GNU compilers or non-macOS systems (same as main MetaGraph)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    list(APPEND EXTERNAL_LIBS -latomic)
+endif()
+
+target_link_libraries(external_query PRIVATE ${EXTERNAL_LIBS})
 
 # Ensure MetaGraph is built before our executable
 add_dependencies(external_query metagraph-external)
