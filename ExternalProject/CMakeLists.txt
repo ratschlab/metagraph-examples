@@ -47,6 +47,19 @@ ExternalProject_Add(metagraph-external
 ExternalProject_Get_Property(metagraph-external INSTALL_DIR)
 set(METAGRAPH_INSTALL_DIR ${INSTALL_DIR})
 
+# On macOS, help CMake find OpenMP from Homebrew
+if(APPLE AND NOT DEFINED OpenMP_ROOT)
+    execute_process(
+        COMMAND brew --prefix libomp
+        OUTPUT_VARIABLE HOMEBREW_LIBOMP_PREFIX
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if(HOMEBREW_LIBOMP_PREFIX)
+        set(OpenMP_ROOT "${HOMEBREW_LIBOMP_PREFIX}" CACHE PATH "Path to OpenMP")
+    endif()
+endif()
+
 # Find required system dependencies for MetaGraph
 find_package(OpenMP REQUIRED)
 find_package(Boost REQUIRED COMPONENTS iostreams)
